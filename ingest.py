@@ -2,6 +2,10 @@
 # 📦 Imports
 # =========================
 
+# Biblioteca para manipular arquivos e pastas do sistema
+import os
+import shutil
+
 # Loader para ler múltiplos PDFs de um diretório
 from langchain_community.document_loaders import PyPDFDirectoryLoader
 
@@ -28,6 +32,27 @@ load_dotenv()
 # Pasta onde estão os arquivos PDF
 PASTA_BASE = "base"
 
+# Pasta onde o banco vetorial será salvo
+PASTA_DB = "db"
+
+
+# =========================
+# 🧹 Limpeza da base antiga
+# =========================
+
+def limpar_db():
+    """
+    Remove a base vetorial antiga, caso ela já exista.
+
+    Isso evita:
+    - duplicação de chunks
+    - mistura de embeddings antigos com novos
+    - inconsistências nos testes durante o desenvolvimento
+    """
+    if os.path.exists(PASTA_DB):
+        shutil.rmtree(PASTA_DB)
+        print("Base vetorial antiga removida com sucesso.")
+
 
 # =========================
 # 🚀 Pipeline principal
@@ -36,13 +61,22 @@ PASTA_BASE = "base"
 def criar_db():
     """
     Função principal que executa todo o pipeline de ingestão:
-    
-    1. Carrega os documentos PDF
-    2. Divide os documentos em chunks menores
-    3. Gera embeddings e armazena no banco vetorial
+
+    1. Remove a base vetorial antiga
+    2. Carrega os documentos PDF
+    3. Divide os documentos em chunks menores
+    4. Gera embeddings e armazena no banco vetorial
     """
+    print("Iniciando criação da base vetorial...")
+
+    limpar_db()
+
     documentos = carregar_documentos()
+    print(f"Documentos carregados: {len(documentos)}")
+
     chunks = dividir_chunks(documentos)
+    print(f"Chunks gerados: {len(chunks)}")
+
     vetorizar_chunks(chunks)
 
 
@@ -55,9 +89,9 @@ def carregar_documentos():
     Carrega todos os arquivos PDF da pasta definida em PASTA_BASE.
 
     Utiliza o PyPDFDirectoryLoader para ler múltiplos arquivos automaticamente.
-    
+
     Retorna:
-        lista de documentos carregados
+        list: lista de documentos carregados
     """
     carregador = PyPDFDirectoryLoader(PASTA_BASE, glob="*.pdf")
     documentos = carregador.load()
@@ -81,11 +115,11 @@ def dividir_chunks(documentos):
     - add_start_index: adiciona índice para rastrear origem do trecho
 
     Retorna:
-        lista de chunks (documentos fragmentados)
+        list: lista de chunks (documentos fragmentados)
     """
     separador_documentos = RecursiveCharacterTextSplitter(
-        chunk_size=1000,
-        chunk_overlap=200,
+        chunk_size=2000,
+        chunk_overlap=500,
         length_function=len,
         add_start_index=True,
     )
@@ -104,16 +138,16 @@ def vetorizar_chunks(chunks):
     Fluxo:
     1. Cada chunk é transformado em vetor (embedding)
     2. Os vetores são armazenados no banco vetorial
-    3. O banco é persistido no diretório "db"
+    3. O banco é persistido no diretório definido em PASTA_DB
 
     Isso permitirá buscas semânticas posteriormente.
     """
     Chroma.from_documents(
         documents=chunks,
         embedding=OpenAIEmbeddings(),
-        persist_directory="db",
+        persist_directory=PASTA_DB,
     )
-    print("Vetorização concluída e banco de dados criado.")
+    print("Vetorização concluída e banco de dados criado com sucesso.")
 
 
 # =========================
