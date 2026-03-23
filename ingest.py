@@ -1,45 +1,45 @@
-from dotenv import load_dotenv
-from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import PyPDFDirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_chroma.vectorstores import Chroma
 from langchain_openai import OpenAIEmbeddings
-from langchain_chroma import Chroma
+from dotenv import load_dotenv
 
 load_dotenv()
 
-PDF_PATH = "dFAQ Python Video YouTube.pdf"
-CHROMA_PATH = "db/chroma"
+PASTA_BASE = "base"
 
-def load_documents(path: str):
-    loader = PyPDFLoader(path)
-    documents = loader.load()
-    return documents
 
-def split_documents(documents):
-    splitter = RecursiveCharacterTextSplitter(
+def criar_db():
+    documentos = carregar_documentos()
+    chunks = dividir_chunks(documentos)
+    vetorizar_chunks(chunks)
+
+
+def carregar_documentos():
+    carregador = PyPDFDirectoryLoader(PASTA_BASE, glob="*.pdf")
+    documentos = carregador.load()
+    return documentos
+
+
+def dividir_chunks(documentos):
+    separador_documentos = RecursiveCharacterTextSplitter(
         chunk_size=1000,
-        chunk_overlap=200
+        chunk_overlap=200,
+        length_function=len,
+        add_start_index=True,
     )
-    chunks = splitter.split_documents(documents)
+    chunks = separador_documentos.split_documents(documentos)
     return chunks
 
-def create_vector_store(chunks):
-    embeddings = OpenAIEmbeddings()
-    vector_store = Chroma.from_documents(
+
+def vetorizar_chunks(chunks):
+    Chroma.from_documents(
         documents=chunks,
-        embedding=embeddings,
-        persist_directory=CHROMA_PATH
+        embedding=OpenAIEmbeddings(),
+        persist_directory="db",
     )
-    return vector_store
+    print("Vetorização concluída e banco de dados criado.")
 
-def main():
-    documents = load_documents(PDF_PATH)
-    print(f"Documentos carregados: {len(documents)}")
-
-    chunks = split_documents(documents)
-    print(f"Chunks gerados: {len(chunks)}")
-
-    create_vector_store(chunks)
-    print("Banco vetorial criado com sucesso.")
 
 if __name__ == "__main__":
-    main()
+    criar_db()
