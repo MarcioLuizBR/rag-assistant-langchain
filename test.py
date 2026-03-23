@@ -1,4 +1,3 @@
-from langchain_openai import OpenAIEmbeddings
-from langchain_community.document_loaders import PyPDFLoader
+from dotenv import load_dotenv
 
-print("Tudo funcionando 🚀")
+print("dotenv funcionando")
