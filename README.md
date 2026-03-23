@@ -1,149 +1,270 @@
-# 🧠 RAG Assistant --- LangChain + Chroma + OpenAI
+# 🧠 RAG Assistant — LangChain + Chroma + OpenAI
 
-```{=html}
 <p align="center">
-```
-`<b>`{=html}Production-ready Retrieval-Augmented Generation (RAG)
-pipeline`</b>`{=html}`<br>`{=html} Built with Python, LangChain, Chroma
-and OpenAI
-```{=html}
+  <strong>Production-ready Retrieval-Augmented Generation (RAG) pipeline</strong><br>
+  Built with Python, LangChain, Chroma and OpenAI
 </p>
-```
-```{=html}
-<p align="center">
-```
-`<img src="https://img.shields.io/badge/Python-3.12+-blue.svg"/>`{=html}
-`<img src="https://img.shields.io/badge/LangChain-RAG-green"/>`{=html}
-`<img src="https://img.shields.io/badge/Chroma-VectorDB-purple"/>`{=html}
-`<img src="https://img.shields.io/badge/OpenAI-gpt--4o--mini-black"/>`{=html}
-`<img src="https://img.shields.io/badge/Status-Active-success"/>`{=html}
-```{=html}
-</p>
-```
 
-------------------------------------------------------------------------
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.12+-blue.svg" alt="Python 3.12+"/>
+  <img src="https://img.shields.io/badge/LangChain-RAG-green" alt="LangChain RAG"/>
+  <img src="https://img.shields.io/badge/Chroma-VectorDB-purple" alt="Chroma VectorDB"/>
+  <img src="https://img.shields.io/badge/OpenAI-gpt--4o--mini-black" alt="OpenAI gpt-4o-mini"/>
+  <img src="https://img.shields.io/badge/Status-Active-success" alt="Status Active"/>
+  <img src="https://img.shields.io/badge/License-MIT-yellow" alt="MIT License"/>
+</p>
+
+---
 
 ## 🚀 Overview
 
-This project implements a **complete RAG (Retrieval-Augmented
-Generation) system**, enabling users to query PDF documents using
-natural language and receive **accurate, context-aware answers**.
+This project implements a complete **RAG (Retrieval-Augmented Generation)** pipeline that allows users to ask questions about PDF documents using natural language and receive answers grounded in the retrieved context.
 
-Unlike traditional LLM usage, this system: - Retrieves **relevant
-knowledge dynamically** - Grounds responses in **real documents** -
-Reduces hallucinations through **controlled prompting**
+Instead of relying only on the model’s internal knowledge, the system first searches a vector database for the most relevant chunks, injects that context into the prompt, and then generates a response based on the retrieved information.
 
-------------------------------------------------------------------------
+This approach helps create answers that are:
 
-## 🧠 Architecture
+- more precise
+- more contextualized
+- more reliable
+- less prone to hallucination
 
-    User Question
-          ↓
-    Embedding (OpenAI)
-          ↓
-    Similarity Search (Chroma)
-          ↓
-    Top-K Relevant Chunks
-          ↓
-    Context Injection (Prompt)
-          ↓
-    LLM (gpt-4o-mini)
-          ↓
-    Final Answer
+---
 
-------------------------------------------------------------------------
+## ✨ Highlights
 
-## 🎯 Key Features
+- 📄 Multi-PDF ingestion pipeline
+- ✂️ Text chunking with `RecursiveCharacterTextSplitter`
+- 🔢 Embeddings with OpenAI
+- 🗄️ Vector storage with Chroma
+- 🔎 Semantic retrieval with relevance score filtering
+- 🧠 Prompt-based grounded answering
+- ❌ Reduced hallucination risk through context restriction
+- 💬 Simple CLI interface for testing
+- ⚡ Ready to evolve into API or Streamlit app
 
--   📄 Multi-PDF ingestion pipeline
--   ✂️ Smart chunking strategy
--   🔎 Semantic similarity search
--   🎯 Relevance filtering (score threshold)
--   🧠 Context-aware prompting
--   ❌ Hallucination control
--   💬 CLI interface
--   ⚡ Ready for API / Streamlit
+---
 
-------------------------------------------------------------------------
+## 🧠 How It Works
+
+The project is divided into two main stages:
+
+### 1. Ingestion Pipeline
+
+The ingestion step reads PDF files, splits them into smaller chunks, generates embeddings, and stores them in Chroma.
+
+### 2. Query Pipeline
+
+When the user asks a question:
+
+1. the question is converted into an embedding
+2. the system searches for the most relevant chunks in Chroma
+3. low-quality matches can be filtered out by relevance score
+4. the retrieved content is assembled into context
+5. the LLM receives the question plus the retrieved context
+6. the final answer is generated based on that context
+
+---
+
+## 🏗️ Architecture
+
+```text
+PDF Documents (base/)
+        ↓
+      ingest.py
+        ↓
+RecursiveCharacterTextSplitter
+        ↓
+OpenAIEmbeddings
+        ↓
+ Chroma Vector Database (db/)
+        ↓
+       main.py
+        ↓
+   User Question
+        ↓
+ Similarity Search
+        ↓
+ Relevant Chunks
+        ↓
+ Prompt + Context
+        ↓
+ ChatOpenAI
+        ↓
+   Final Answer
+```
+
+---
 
 ## 🛠️ Tech Stack
 
--   Python\
--   LangChain\
--   ChromaDB\
--   OpenAI (Embeddings + Chat)\
--   python-dotenv\
--   uv (dependency manager)
+- **Python**
+- **LangChain**
+- **langchain-openai**
+- **langchain-community**
+- **langchain-chroma**
+- **langchain-text-splitters**
+- **ChromaDB**
+- **OpenAI**
+- **python-dotenv**
+- **uv**
 
-------------------------------------------------------------------------
+---
 
-## 📦 Installation
+## 📁 Project Structure
 
-``` bash
+```text
+rag-assistant-langchain/
+│
+├── base/                  # PDF files used as knowledge base
+├── db/                    # Persisted Chroma vector database
+├── ingest.py              # Ingestion pipeline
+├── main.py                # Query pipeline
+├── .env                   # Environment variables
+├── pyproject.toml         # Project dependencies
+└── README.md
+```
+
+---
+
+## ⚙️ Installation
+
+### 1. Clone the repository
+
+```bash
 git clone https://github.com/MarcioLuizBR/rag-assistant-langchain.git
 cd rag-assistant-langchain
+```
+
+### 2. Install dependencies
+
+Using **uv**:
+
+```bash
 uv sync
 ```
 
-Create `.env` file:
+If you prefer pip:
 
-    OPENAI_API_KEY=your_key_here
+```bash
+pip install -r requirements.txt
+```
 
-------------------------------------------------------------------------
+### 3. Configure environment variables
 
-## ⚙️ Usage
+Create a `.env` file in the project root:
 
-### 1. Ingest documents
+```env
+OPENAI_API_KEY=your_openai_api_key_here
+```
 
-    uv run ingest.py
+---
 
-### 2. Ask questions
+## 🚀 Usage
 
-    uv run main.py
+### Step 1 — Add your PDF files
 
-------------------------------------------------------------------------
+Place your documents inside the `base/` folder.
 
-## 🧪 Example
+### Step 2 — Run the ingestion pipeline
 
-    Question:
-    What is the main topic of the document?
+```bash
+uv run ingest.py
+```
 
-    Answer:
-    The document discusses...
+This step will:
 
-------------------------------------------------------------------------
+- load PDF files
+- split them into chunks
+- generate embeddings
+- create or recreate the vector database
 
-## ⚠️ RAG Best Practices Applied
+### Step 3 — Run the query pipeline
 
--   Temperature = 0 (deterministic answers)
--   Context-only answering (no external knowledge)
--   Similarity threshold filtering
--   Structured prompt engineering
--   Fallback for low-confidence retrieval
+```bash
+uv run main.py
+```
 
-------------------------------------------------------------------------
+Then type your question in the terminal.
 
-## 📈 Roadmap
+---
 
--   [ ] API with FastAPI
--   [ ] Streamlit UI
--   [ ] Source attribution in responses
--   [ ] MMR retrieval
--   [ ] LangSmith observability
--   [ ] Cloud deployment
+## 💬 Example Flow
 
-------------------------------------------------------------------------
+```text
+Escreva sua pergunta:
+Qual é o tema principal do documento?
+
+Resposta da IA:
+O documento trata principalmente de ...
+```
+
+---
+
+## 🧪 Best Practices Applied
+
+This project already includes important RAG-oriented decisions:
+
+- **temperature = 0** for more deterministic answers
+- relevance score check before using retrieved chunks
+- context-based prompt to reduce unsupported answers
+- separation between ingestion and query stages
+- simple structure that supports future refactoring
+
+---
+
+## ⚠️ Current Limitations
+
+This is an educational and portfolio-oriented project, so there are still possible improvements such as:
+
+- source citation in the final answer
+- better retrieval strategies such as MMR
+- metadata display for retrieved chunks
+- conversational memory
+- evaluation and observability
+- UI or API layer
+
+---
+
+## 🛣️ Roadmap
+
+- [ ] Show source file and page in the answer
+- [ ] Add structured output for retrieved chunks
+- [ ] Test MMR retrieval for more diverse context
+- [ ] Build API with FastAPI
+- [ ] Build interface with Streamlit
+- [ ] Add LangSmith observability
+- [ ] Prepare cloud deployment version
+
+---
+
+## 📚 Why This Project Matters
+
+RAG is one of the most practical ways to connect LLMs with real business data.
+
+This project demonstrates applied skills in:
+
+- LLM application development
+- vector databases
+- embeddings
+- semantic retrieval
+- prompt engineering
+- Python-based AI workflows
+
+It is a solid foundation for future evolutions such as internal assistants, document Q&A systems, AI copilots, and domain-specific knowledge agents.
+
+---
 
 ## 👨‍💻 Author
 
 **Marcio Luiz**
 
-Python \| Data \| AI \| Cloud (Azure)
+Python • Data • AI • Cloud
 
-🔗 https://github.com/MarcioLuizBR
+- GitHub: https://github.com/MarcioLuizBR
 
-------------------------------------------------------------------------
+---
 
-## ⭐ If you found this useful
+## ⭐ Support
 
-Give it a ⭐ and help this project grow!
+If this project helped you or inspired your own implementation, consider giving it a star.
